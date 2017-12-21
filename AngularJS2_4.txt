@@ -1,0 +1,95 @@
+将数据显示到用户界面上,可以使用以下三种方式:
+    通过插值表达式显示组件的属性
+    通过NgFor显示数组型属性
+    通过NgIf实现按条件显示
+1.通过插值表达式显示组件的属性：
+  要显示组件的属性,插值是最简单的方式,格式为{{属性名}}
+  例子：
+    app/app.component.ts 文件：
+        import { Component } from '@angular/core';
+        @Component({
+          selector: 'my-app',
+          template: `
+            <h1>{{title}}</h1>
+            <h2>我喜欢的网站: {{mySite}}</h2>
+            `
+        })
+        export class AppComponent {
+          title = '站点列表';
+          mySite = '菜鸟教程';
+        }
+  Angular会自动从组件中提取title和mySite属性的值,并显示在浏览器中
+2.使用ngFor显示数组属性 - 可以循环输出多个站点
+  例子：
+    app/app.component.ts 文件：
+        import { Component } from '@angular/core';
+        @Component({
+          selector: 'my-app',
+          template: `
+            <h1>{{title}}</h1>
+            <h2>我喜欢的网站: {{mySite}}</h2>
+            <p>网站列表:</p>
+            <ul>
+              <li *ngFor="let site of sites">
+                {{ site }}
+              </li>
+            </ul>
+            `
+        })
+
+        export class AppComponent {
+          title = '站点列表';
+          sites = ['菜鸟教程', 'Google', 'Taobao', 'Facebook'];
+          mySite = this.sites[0];
+        }
+    模板中使用Angular的ngFor指令来显示sites列表中的每一个条目
+    不要忘记 *ngFor 中的前导星号(*)
+3.通过NgIf进行条件显示 - 设置输出指定条件的数据
+  例子：
+    app/app.component.ts 文件：
+        import { Component } from '@angular/core';
+        import { Site } from './site';
+
+        @Component({
+          selector: 'my-app',
+          template: `
+            <h1>{{title}}</h1>
+            <h2>我喜欢的网站: {{mySite.name}}</h2>
+            <p>网站列表:</p>
+            <ul>
+              <li *ngFor="let site of sites">
+               {{ site.name }}
+              </li>
+            </ul>
+            <p *ngIf="sites.length > 3">你有很多个喜欢的网站!</p>
+            `
+        })
+
+        export class AppComponent {
+          title = '站点列表';
+          sites = [
+              new Site(1, '菜鸟教程'),
+              new Site(2, 'Google'),
+              new Site(3, 'Taobao'),
+              new Site(4, 'Facebook')
+              ];
+          mySite = this.sites[0];
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

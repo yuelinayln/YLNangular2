@@ -1,0 +1,282 @@
+利用Angular模版,我们可以创建各种类型表单,例如:登录表单,联系人表单,商品详情表单等
+1.创建Site模型
+  app/site.ts 文件：
+      export class Site{
+        constructor(
+            public id:number,
+            public name:string,
+            public url:string,
+            public alexa?:number
+        ){ }
+      }
+  代码中标为public的为公有字段,alexa后添加一个 ? 表示可选字段
+2.创建一个表单组件
+  每个Angular表单分为两个部分:
+    一个是基于HTML的模版
+    一个是基于代码的组件,他用来处理数据和用户交互
+  app/site-form.component.ts 文件：
+      import {Component} from '@angular/core';
+      import {Site} from './site';
+      @Component({
+            moduleId:module.id,
+            selector:'site-form',
+            templateUrl:'site-form.component.html'
+      })
+      export class SiteFormComponent{
+            urls=['www.runoob.com', 'www.google.com','www.taobao.com', 'www.facebook.com'];
+            model=new Site(1,'菜鸟教程',this.urls[0],10000);
+            submitted=false;
+            onSubmit(){this.submitted=true}
+            //TODO:完成后移除
+            get diagnostic(){return JSON.stringify(this.model)}
+      }
+  代码中导入了Component装饰器和Site模型
+  @Component选择器"site-form"表示我们可以通过<site-form>标签,把此表单扔进父模版中
+  template属性指向一个独立的HTML模版文件,名叫site-form.component.html
+  diagnostic属性用于返回这个模型的JSON形式
+3.定义应用的根模块
+  修改app.module.ts来定义应用的根模块,模块中指定了引用到的外部即声明属于本模块中的组件,比如SiteFormComponent
+  因为模版驱动的表单有自己的模块,所以得把FormsModule添加到本应用的imports,才能使用表单
+  app/app.module.ts 文件：
+    import {NgModule} from '@angular/core';
+    import {BrowserModule} from 'angular/platform-browser';
+    import {FormsModule} from 'angular/froms';
+    import {AppComponent} from './app.component';
+    import {SiteFromComponent} from './site-form.component';
+    NgModule({
+      imports: [
+        BrowserModule,
+        FormsModule
+      ],
+      declarations: [
+        AppComponent,
+        SiteFormComponent
+      ],
+      bootstrap: [ AppComponent ]
+    })
+    export class AppModule { }
+4.创建根组件
+  修改根组件文件 app.component.ts 将SiteFormComponent放在其中
+  app/app.component.ts 文件：
+    import { Component } from '@angular/core';
+    @Component({
+      selector: 'my-app',
+      template: '<site-form></site-form>'
+    })
+    export class AppComponent { }
+5.创建一个初始HTML表单模版
+  app/site-form.component.html 文件：
+    <div class="container">
+        <h1>网站表单</h1>
+        <form>
+          <div class="form-group">
+            <label for="name">网站名</label>
+            <input type="text" class="form-control" id="name" required>
+          </div>
+          <div class="form-group">
+            <label for="alterEgo">alexa 排名</label>
+            <input type="text" class="form-control" id="alexa">
+          </div>
+          <button type="submit" class="btn btn-default">提交</button>
+        </form>
+    </div>
+    代码中,required属性设置的该字段为必须字段,如果没有设置则是可选
+  在angular-forms目录下输入：cnpm install bootstrap --save
+  打开index.html文件,把以下样式链接添加到<head>中：
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+  执行 npm start 访问http://localhost:3000/
+
+
+
+使用ngModel进行双向数据绑定
+通过监听DOM事件,来实现更新组件的属性
+app/site-form.component.html 文件：
+    <div class="container">
+        <h1>网站表单</h1>
+        <form>
+          {{diagnostic}}
+          <div class="form-group">
+            <label for="name">网站名</label>
+           <input type="text" class="form-control" id="name"
+             required
+             [(ngModel)]="model.name" name="name">
+          </div>
+          <div class="form-group">
+            <label for="alexa">alexa 排名</label>
+             <input type="text"  class="form-control" id="alexa"
+             [(ngModel)]="model.alexa" name="alexa">
+          </div>
+          <div class="form-group">
+            <label for="url">网站 URL </label>
+            <select class="form-control"  id="url"
+                    required
+                    [(ngModel)]="model.url" name="url">
+              <option *ngFor="let p of urls" [value]="p">{{p}}</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-default">提交</button>
+        </form>
+    </div>
+    代码中每一个input元素都有一个id属性,他被label元素的for属性用来吧标签匹配到对应的input
+    每一个input元素都有name属性,angular的表单模块需要使用它为表单注册控制器
+    {{diagnostic}}只是用于测试时候输出数据使用
+    还可以通过ngModel跟踪修改状态与有效验证,他使用了三个CSS类来更新控件,以便反应当前状态
+    *****
+        状态 	        为 true 时的类 	 为 false 时的类
+        控件已经被访问过 	ng-touched 	     ng-untouched
+        控件值已经变化 	ng-dirty 	     ng-pristine
+        控件值是有效的 	ng-valid 	     ng-invalid
+    *****
+    这样就可以添加自定义的CSS来反应表单的状态
+    forms.css 文件：
+        .ng-valid[required], .ng-valid.required  {
+          border-left: 5px solid #42A948; /* green */
+        }
+
+        .ng-invalid:not(form)  {
+          border-left: 5px solid #a94442; /* red */
+        }
+    打开index.html文件,把以下样式链接添加到<head>中
+    <link rel="stylesheet" href="from.css">
+    app/site-form.component.html 文件：
+        div class="container">
+            <h1>网站表单</h1>
+            <form>
+              {{diagnostic}}
+              <div class="form-group">
+                <label for="name">网站名</label>
+                  <input type="text" class="form-control" id="name"
+                       required
+                       [(ngModel)]="model.name" name="name"
+                       #name="ngModel" >
+                <div [hidden]="name.valid || name.pristine"
+                     class="alert alert-danger">
+                  网站名是必需的
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="alexa">alexa 排名</label>
+                 <input type="text"  class="form-control" id="alexa"
+                 [(ngModel)]="model.alexa" name="alexa">
+              </div>
+              <div class="form-group">
+                <label for="url">网站 URL </label>
+                <select class="form-control"  id="url"
+                        required
+                        [(ngModel)]="model.url" name="url">
+                  <option *ngFor="let p of urls" [value]="p">{{p}}</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-default">提交</button>
+            </form>
+        </div>
+     模版中通过把div元素的hidden属性绑定到name控件的属性,就可以控制name字段错误信息的可见性了
+
+添加一个网站
+创建一个用于添加网站的表单
+app/site-form.component.html 文件：
+    <button type="button" class="btn btn-default" (click)="newSite">添加网站</button>
+将按钮事件绑定到组件方法上：
+app/site-form.component.ts 文件：
+    active=true;
+    newSite(){
+        this.model=new Site(5,'','');
+        this.active=false;
+        setTimeOut(()=>this.active=true,0)
+    }
+    给组件加一个active标记,把它初始化为true,
+    当添加一个新的网站时,把active标记设置为false,然后通过一个快速的setTimeout函数迅速把它设置回true
+通过ngSubmit来提交表单
+    可以通过使用Angular的指令NgSubmit来提交表单,并且通过事件绑定机制把它绑定到
+    SiteFormComponent.submit()方法上
+    <form *ngIf="active" (ngSubmit)="onSubmit()" #siteForm="ngForm"></form>
+    定义了一个模版引用变量#siteForm,并且把它初始化为'ngForm'
+    这个siteForm变量现在引用的是NgForm指令,它代表的是表单的整体
+    app/site-form.component.ts 文件：
+        import { Component } from '@angular/core';
+        import { Site }    from './site';
+
+        @Component({
+          moduleId: module.id,
+          selector: 'site-form',
+          templateUrl: 'site-form.component.html'
+        })
+        export class SiteFormComponent {
+          urls = ['www.runoob.com', 'www.google.com',
+                    'www.taobao.com', 'www.facebook.com'];
+          model = new Site(1, '菜鸟教程', this.urls[0], 10000);
+          submitted = false;
+          onSubmit() { this.submitted = true; }
+          // TODO: 完成后移除
+          get diagnostic() { return JSON.stringify(this.model); }
+          active = true;
+          newSite() {
+            this.model = new Site(5, '', '');
+            this.active = false;
+            setTimeout(() => this.active = true, 0);
+          }
+        }
+    app/site-form.component.html 文件：
+        <div class="container">
+          <div  [hidden]="submitted">
+            <h1>网站表单</h1>
+             <form *ngIf="active" (ngSubmit)="onSubmit()" #siteForm="ngForm">
+              {{diagnostic}}
+              <div class="form-group">
+                <label for="name">网站名</label>
+                <input type="text" class="form-control" id="name"
+                       required
+                       [(ngModel)]="model.name" name="name"
+                       #name="ngModel" >
+                <div [hidden]="name.valid || name.pristine"
+                     class="alert alert-danger">
+                  网站名是必需的
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="alexa">alexa 排名</label>
+                 <input type="text"  class="form-control" id="alexa"
+                 [(ngModel)]="model.alexa" name="alexa">
+              </div>
+              <div class="form-group">
+                <label for="url">网站 URL </label>
+                <select class="form-control"  id="url"
+                        required
+                        [(ngModel)]="model.url" name="url">
+                  <option *ngFor="let p of urls" [value]="p">{{p}}</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-default" [disabled]="!siteForm.form.valid">提交</button>
+              <button type="button" class="btn btn-default" (click)="newSite()">新增网站</button>
+            </form>
+        </div>
+         <div [hidden]="!submitted">
+            <h2>你提交的信息如下:</h2>
+            <div class="row">
+              <div class="col-xs-3">网站名</div>
+              <div class="col-xs-9  pull-left">{{ model.name }}</div>
+            </div>
+            <div class="row">
+              <div class="col-xs-3">网站 alexa 排名</div>
+              <div class="col-xs-9 pull-left">{{ model.alexa }}</div>
+            </div>
+            <div class="row">
+              <div class="col-xs-3">网站 URL </div>
+              <div class="col-xs-9 pull-left">{{ model.url }}</div>
+            </div>
+            <br>
+            <button class="btn btn-default" (click)="submitted=false">编辑</button>
+          </div>
+        </div>
+    代码中把hidden属性绑定到SiteFormComponent.submitted属性上
+    主表单从一开始就是可见的,因为submitted属性是false,提交表单时隐藏,submitted属性变为true
+
+
+
+
+
+
+
+
+
+
